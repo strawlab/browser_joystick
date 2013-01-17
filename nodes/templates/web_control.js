@@ -1,4 +1,4 @@
-var ws_uri = "ws://{{ base_url }}/{{ echo_ws_path }}";
+var ws_uri = "http://{{ base_url }}/{{ echo_ws_path }}";
 
 function lag()
 {
@@ -11,24 +11,24 @@ function lag()
 
 function ws_event() {
     $("#websocket_state").empty();
-    if (ws.readyState == WebSocket.CONNECTING) {
-        $("#websocket_state").append("WebSocket state: connecting");
+    if (ws.readyState == SockJS.CONNECTING) {
+        $("#websocket_state").append("SockJS state: connecting");
     }
-    if (ws.readyState == WebSocket.OPEN) {
-        $("#websocket_state").append("WebSocket state: opened");
+    if (ws.readyState == SockJS.OPEN) {
+        $("#websocket_state").append("SockJS state: opened");
     }
-    if (ws.readyState == WebSocket.CLOSING) {
-        $("#websocket_state").append("WebSocket state: closing");
+    if (ws.readyState == SockJS.CLOSING) {
+        $("#websocket_state").append("SockJS state: closing");
     }
-    if (ws.readyState == WebSocket.CLOSED) {
-        $("#websocket_state").append('WebSocket state: closed, attempting reconnect...');
+    if (ws.readyState == SockJS.CLOSED) {
+        $("#websocket_state").append('SockJS state: closed, attempting reconnect...');
         window.setTimeout( reconnect, 1000 );
     }
 }
 
 function reconnect() {
     // global var
-    ws = new WebSocket(ws_uri);
+    ws = new SockJS(ws_uri);
     ws_event();
     ws.onopen = function() { ws_event(); }
     ws.onclose = function() { ws_event(); }

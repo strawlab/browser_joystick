@@ -4,8 +4,7 @@ from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.web import Application
 import tornado.web
-from tornado.websocket import WebSocketHandler
-import tornado.websocket
+from sockjs.tornado import SockJSRouter, SockJSConnection
 import tornado.template
 
 assert tornado.version_info >= (2,4,1)
@@ -22,14 +21,14 @@ from  sensor_msgs.msg import Joy
 
 global joy_pub
 
-class EchoWebSocket(tornado.websocket.WebSocketHandler):
-    def open(self):
+class EchoHandler(SockJSConnection):
+    def on_open(self, info):
         print "WebSocket opened"
 
     def on_message(self, message_raw):
         message = json.loads(message_raw)
         if message['msg']=='lag':
-            self.write_message( json.dumps({
+            self.send( json.dumps({
                 'start':message['start'],
                 }))
 
@@ -108,11 +107,12 @@ def main():
           'js_path':js_path,
           }
 
+    EchoRouter = SockJSRouter(EchoHandler, r'/'+echo_ws_path)
+
     application = tornado.web.Application([
         (r'/', MainHandler, dict(cfg=dd)),
         (r'/'+js_path, JSHandler, dict(cfg=dd)),
-        (r'/'+echo_ws_path, EchoWebSocket),
-        ],
+        ]+EchoRouter.urls,
                                           **settings)
 
 
