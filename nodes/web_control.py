@@ -21,9 +21,6 @@ from  sensor_msgs.msg import Joy
 global joy_pub
 
 class EchoHandler(SockJSConnection):
-    def on_open(self, info):
-        print "WebSocket opened"
-
     def on_message(self, message_raw):
         message = json.loads(message_raw)
         if message['msg']=='lag':
@@ -37,9 +34,6 @@ class EchoHandler(SockJSConnection):
             msg.axes = message['axes']
             msg.buttons = message['buttons']
             joy_pub.publish(msg)
-
-    def on_close(self):
-        print "WebSocket closed"
 
 class MainHandler(tornado.web.RequestHandler):
     def initialize(self, cfg):
