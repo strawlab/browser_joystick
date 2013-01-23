@@ -47,19 +47,21 @@ function reconnect() {
 };
 
 window.onload = function() {
-    var stage = new Kinetic.Stage("container", 400, 200);
-    big_radius = 200/2-4;
+    var wsz = window.innerWidth;
+    var hsz = wsz/2;
+    var stage = new Kinetic.Stage("container", wsz, hsz);
+    big_radius = hsz/2-4;
     button_state = [0, 0, 0, 0];
 
     var joyLayer = new Kinetic.Layer();
     var bgLayer = new Kinetic.Layer();
-    joyCenterX = 100;
-    joyCenterY = 100;
+    joyCenterX = wsz/4;
+    joyCenterY = hsz/2;
 
     joytip = new Kinetic.Circle({
         x: joyCenterX,
         y: joyCenterY,
-        radius: 15,
+        radius: wsz/25,
         fill: "#00D2FF",
         stroke: "black",
         strokeWidth: 2,
@@ -114,9 +116,9 @@ window.onload = function() {
     function add_buttons() {
         var buttonLayer = new Kinetic.Layer();
 
-        var allBtnCenterX = 300;
-        var allBtnCenterY = 100;
-        var btnOffset = 50;
+        var allBtnCenterX = wsz*3/4;
+        var allBtnCenterY = hsz/2;
+        var btnOffset = wsz/8;
 
         var cfg = { num: 0,
                     x: allBtnCenterX-btnOffset,
@@ -150,7 +152,7 @@ window.onload = function() {
     }
 
     function add_button(cfg, buttonLayer) {
-        var btnRadius = 20;
+        var btnRadius = wsz/25;
         var btn = new Kinetic.Circle({
             x: cfg.x,
             y: cfg.y,
