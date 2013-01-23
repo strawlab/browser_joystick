@@ -73,8 +73,11 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--host', type=str, default=None,
+        '--host', type=str, default='localhost',
         help='host name or IP address',)
+    parser.add_argument(
+        '--port', type=int, default='9381',
+        help='port number',)
     # use argparse, but only after ROS did its thing
     argv = rospy.myargv()
     args = parser.parse_args(argv[1:])
@@ -87,12 +90,9 @@ def main():
         )
 
     echo_ws_path = 'echo'
-    if args.host is None:
-        host = 'localhost'
-    else:
-        host = args.host
-    port = 1024
-    base_url = '%s:%d'%(host,port)
+    base_url = args.host
+    if args.port != 80:
+        base_url = base_url+':'+str(args.port)
 
     js_path='web_control.js'
     dd = {'base_url':base_url,
@@ -132,7 +132,7 @@ def main():
     joy_pub = rospy.Publisher("joy", Joy)
 
     http_server = tornado.httpserver.HTTPServer(application)
-    http_server.listen(port)
+    http_server.listen(args.port)
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":
