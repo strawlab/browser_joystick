@@ -11,7 +11,6 @@ assert tornado.version_info >= (2,4,1)
 
 import os
 import json
-import socket
 import argparse
 
 # ROS imports
@@ -95,7 +94,7 @@ def main():
 
     echo_ws_path = 'echo'
     if args.host is None:
-        host = socket.gethostbyname(socket.gethostname())
+        host = 'localhost'
     else:
         host = args.host
     port = 1024
