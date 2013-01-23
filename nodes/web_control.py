@@ -9,7 +9,8 @@ import tornado.template
 
 assert tornado.version_info >= (2,4,1)
 
-import os
+import os, sys, subprocess
+import tempfile
 import json
 import argparse
 
@@ -49,25 +50,6 @@ class JSHandler(tornado.web.RequestHandler):
         buf = self.render_string("web_control.js",**self.cfg)
         self.write(buf)
 
-def im2ascii(im):
-    c = unichr(0x2588)
-
-    width,height = im.size
-    pixels = list(im.getdata())
-    pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
-
-    result = ''
-    for row in pixels:
-        for char in row:
-            if char == 0:
-                result += ' '
-            elif char == 255:
-                result += c
-            else:
-                raise ValueError('expected 0 or 255')
-        result += '\n'
-    return result
-
 def main():
     global joy_pub
 
@@ -78,6 +60,9 @@ def main():
     parser.add_argument(
         '--port', type=int, default='9381',
         help='port number',)
+    parser.add_argument(
+        '--qr', action='store_true', default=False,
+        help='show QR code',)
     # use argparse, but only after ROS did its thing
     argv = rospy.myargv()
     args = parser.parse_args(argv[1:])
@@ -111,20 +96,24 @@ def main():
 
     url = "http://%s"%base_url
     print "starting web server at", url
-    try:
+
+    if args.qr:
         import qrencode
-    except ImportError:
-        qrencode = None
-    if qrencode is not None:
         _,_,im = qrencode.encode(url)
-        if 1:
-            fname = 'link.png'
-            im.save(fname)
-            print 'URL encoded as a QR code in',fname
+
+        fobj = tempfile.NamedTemporaryFile(mode='wb',suffix='.png',
+                                           prefix='browser_joy_')
+        im.save(fobj,'png')
+        fname = fobj.name
+        if sys.platform.startswith('linux'):
+            cmd = 'xdg-open'
+        elif sys.platform.startswith('win'):
+            cmd = 'start'
         else:
-            print im2ascii(im)
-    else:
-        print 'QR encoded link not done'
+            # mac?
+            cmd = 'open'
+        full_cmd = ' '.join([cmd,fname])
+        subprocess.call(full_cmd,shell=True)
 
     node_name = os.path.splitext(os.path.basename(__file__))[0]
     rospy.init_node( node_name, disable_signals=True )
