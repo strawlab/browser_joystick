@@ -99,12 +99,24 @@ def main():
 
     if args.qr:
         import qrencode
+        import Image
+        # encode the URL
         _,_,im = qrencode.encode(url)
 
+        # resize the image to be about 512x512
+        target_w = 512
+        scale = target_w//im.size[0]
+        actual_w = im.size[0]*scale
+        actual_h = im.size[1]*scale
+        im = im.resize( (actual_w, actual_h), Image.NEAREST )
+
+        # save the image
         fobj = tempfile.NamedTemporaryFile(mode='wb',suffix='.png',
                                            prefix='browser_joy_')
         im.save(fobj,'png')
         fname = fobj.name
+
+        # open the image
         if sys.platform.startswith('linux'):
             cmd = 'xdg-open'
         elif sys.platform.startswith('win'):
