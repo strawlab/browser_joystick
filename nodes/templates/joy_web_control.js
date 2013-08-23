@@ -1,4 +1,4 @@
-var ws_uri = "http://{{ base_url }}/{{ echo_ws_path }}";
+var ws_uri = "http://{{ base_url }}/{{ joy_sock_path }}";
 
 function lag()
 {
@@ -47,7 +47,7 @@ function reconnect() {
 };
 
 window.onload = function() {
-    var wsz = window.innerWidth;
+    var wsz = Math.min(window.innerWidth,500);
     var hsz = wsz/2;
     var stage = new Kinetic.Stage("container", wsz, hsz);
     big_radius = hsz/2-4;

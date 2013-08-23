@@ -21,7 +21,7 @@ from  sensor_msgs.msg import Joy
 
 global joy_pub
 
-class EchoHandler(SockJSConnection):
+class JoySockHandler(SockJSConnection):
     def on_message(self, message_raw):
         message = json.loads(message_raw)
         if message['msg']=='lag':
@@ -42,12 +42,32 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("web_control.html",**self.cfg)
 
-class JSHandler(tornado.web.RequestHandler):
+class JoyHandler(tornado.web.RequestHandler):
+    def initialize(self, cfg):
+        self.cfg = cfg
+    def get(self):
+        self.render("joy_web_control.html",**self.cfg)
+
+class MouseHandler(tornado.web.RequestHandler):
+    def initialize(self, cfg):
+        self.cfg = cfg
+    def get(self):
+        self.render("mouse_web_control.html",**self.cfg)
+
+class JoyJSHandler(tornado.web.RequestHandler):
     def initialize(self, cfg):
         self.cfg = cfg
     def get(self):
         self.set_header("Content-Type", "application/javascript")
-        buf = self.render_string("web_control.js",**self.cfg)
+        buf = self.render_string("joy_web_control.js",**self.cfg)
+        self.write(buf)
+
+class MouseJSHandler(tornado.web.RequestHandler):
+    def initialize(self, cfg):
+        self.cfg = cfg
+    def get(self):
+        self.set_header("Content-Type", "application/javascript")
+        buf = self.render_string("mouse_web_control.js",**self.cfg)
         self.write(buf)
 
 def main():
@@ -74,23 +94,31 @@ def main():
         xsrf_cookies= True,
         )
 
-    echo_ws_path = 'echo'
+    joy_sock_path = 'joy_sock'
     base_url = args.host
     if args.port != 80:
         base_url = base_url+':'+str(args.port)
 
-    js_path='web_control.js'
+    joy_js_path='joy_web_control.js'
+    mouse_js_path='mouse_web_control.js'
     dd = {'base_url':base_url,
-          'echo_ws_path':echo_ws_path,
-          'js_path':js_path,
+          'joy_sock_path':joy_sock_path,
+          'joy_js_path':joy_js_path,
+          'mouse_js_path':mouse_js_path,
           }
 
-    EchoRouter = SockJSRouter(EchoHandler, r'/'+echo_ws_path)
+    JoySockRouter = SockJSRouter(JoySockHandler, r'/'+joy_sock_path)
 
     application = tornado.web.Application([
         (r'/', MainHandler, dict(cfg=dd)),
-        (r'/'+js_path, JSHandler, dict(cfg=dd)),
-        ]+EchoRouter.urls,
+
+        (r'/joystick', JoyHandler, dict(cfg=dd)),
+        (r'/'+joy_js_path, JoyJSHandler, dict(cfg=dd)),
+
+        (r'/mouse', MouseHandler, dict(cfg=dd)),
+        (r'/'+mouse_js_path, MouseJSHandler, dict(cfg=dd)),
+
+        ]+JoySockRouter.urls,
                                           **settings)
 
 
