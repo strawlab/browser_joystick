@@ -95,7 +95,7 @@ def main():
 
 
     url = "http://%s"%base_url
-    print "starting web server at", url
+    rospy.loginfo("starting web server at %s" % url)
 
     if args.qr:
         import qrencode
