@@ -36,6 +36,21 @@ class JoySockHandler(SockJSConnection):
             msg.buttons = message['buttons']
             joy_pub.publish(msg)
 
+class MouseSockHandler(SockJSConnection):
+    def on_message(self, message_raw):
+        message = json.loads(message_raw)
+        if message['msg']=='lag':
+            self.send( json.dumps({
+                'start':message['start'],
+                }))
+
+        if message['msg']=='joy':
+            msg = Joy()
+            msg.header.stamp = rospy.Time.now()
+            msg.axes = message['axes']
+            msg.buttons = message['buttons']
+            joy_pub.publish(msg)
+
 class MainHandler(tornado.web.RequestHandler):
     def initialize(self, cfg):
         self.cfg = cfg
@@ -92,9 +107,11 @@ def main():
         cookie_secret=os.urandom(1024),
         template_path=os.path.join(os.path.dirname(__file__), "templates"),
         xsrf_cookies= True,
+        debug=True,
         )
 
     joy_sock_path = 'joy_sock'
+    mouse_sock_path = 'mouse_sock'
     base_url = args.host
     if args.port != 80:
         base_url = base_url+':'+str(args.port)
@@ -103,11 +120,13 @@ def main():
     mouse_js_path='mouse_web_control.js'
     dd = {'base_url':base_url,
           'joy_sock_path':joy_sock_path,
+          'mouse_sock_path':mouse_sock_path,
           'joy_js_path':joy_js_path,
           'mouse_js_path':mouse_js_path,
           }
 
     JoySockRouter = SockJSRouter(JoySockHandler, r'/'+joy_sock_path)
+    MouseSockRouter = SockJSRouter(MouseSockHandler, r'/'+mouse_sock_path)
 
     application = tornado.web.Application([
         (r'/', MainHandler, dict(cfg=dd)),
@@ -118,7 +137,7 @@ def main():
         (r'/mouse', MouseHandler, dict(cfg=dd)),
         (r'/'+mouse_js_path, MouseJSHandler, dict(cfg=dd)),
 
-        ]+JoySockRouter.urls,
+        ]+JoySockRouter.urls+MouseSockRouter.urls,
                                           **settings)
 
 
