@@ -72,6 +72,7 @@ def main():
         cookie_secret=os.urandom(1024),
         template_path=os.path.join(os.path.dirname(__file__), "templates"),
         xsrf_cookies= True,
+        debug=True,
         )
 
     echo_ws_path = 'echo'
